@@ -1,0 +1,16 @@
+﻿@page
+@model bestpricesale.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h2>Available Pages</h2>
+
+<ul>
+    @foreach (var p in Model.Pages)
+    {
+        <li>
+            <a asp-page="/Page" asp-route-slug="@p.Slug">@p.Title</a>
+        </li>
+    }
+</ul>

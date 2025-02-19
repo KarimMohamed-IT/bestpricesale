@@ -1,0 +1,32 @@
+﻿@page "{slug}"
+@model bestpricesale.Pages.PageShellModel
+@{
+    ViewData["Title"] = Model.Page?.Title;
+}
+
+@if (Model.Page == null)
+{
+    <h2>Page not found</h2>
+}
+else
+{
+    <h2>@Model.Page.Title</h2>
+    <div>
+        @Html.Raw(Model.Page.Content)
+    </div>
+
+    @if (Model.Page.Template.Name == "Event" && Model.Page.EventDetail != null)
+    {
+        <h3>@Model.Page.EventDetail.EventTitle</h3>
+        <p>@Model.Page.EventDetail.Description</p>
+        <ul>
+            @foreach (var option in Model.Page.EventDetail.EventOptions)
+            {
+                <li>
+                    Date: @option.Date, Location: @option.Location, Price: @option.Price
+                    <img src="@option.ImageUrl" alt="Event Option" style="max-width:100px;" />
+                </li>
+            }
+        </ul>
+    }
+}
