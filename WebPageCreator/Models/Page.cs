@@ -1,28 +1,15 @@
 ﻿namespace bestpricesale.Models
 {
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
     public class Page
     {
-        [Key]
-        public int Id { get; set; }
+        // The unique identifier used for filenames and URL slugs.
+        public string Slug { get; set; }
 
-        [Required]
         public string Title { get; set; }
 
-        [Required]
-        public string Slug { get; set; }  // URL slug (e.g., "TemplateName")
-
+        // The full HTML content of the page.
         public string Content { get; set; }
 
-        // Foreign key to Template
-        public int TemplateId { get; set; }
-        [ForeignKey("TemplateId")]
-        public Template Template { get; set; }
-
-        // For Event template details (if applicable)
-        public EventDetail EventDetail { get; set; }
+        // (Optional) Other properties like Template name can be added here.
     }
-
 }

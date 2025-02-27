@@ -1,16 +1,56 @@
 ﻿@page
 @model bestpricesale.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Pages Management";
 }
 
-<h2>Available Pages</h2>
+<!-- Import Bootstrap (if not already included) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
-<ul>
-    @foreach (var p in Model.Pages)
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Pages Management</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="/PageEditor" class="btn btn-primary">+ Create New Page</a>
+    </div>
+
+    @if (Model.Pages.Any())
     {
-        <li>
-            <a asp-page="/Page" asp-route-slug="@p.Slug">@p.Title</a>
-        </li>
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Slug</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pageload in Model.Pages)
+                {
+                    <tr>
+                        <td>@pageload.Title</td>
+                        <td><a href="/PageShell/@pageload.Slug" target="_blank">@pageload.Slug</a></td>
+                        <td>
+                            <a href="/PageEditor?slug=@pageload.Slug" class="btn btn-warning btn-sm">✏ Edit</a>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(@pageload.Slug)">🗑 Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
-</ul>
+    else
+    {
+        <div class="alert alert-info text-center">No pages found. Create one!</div>
+    }
+</div>
+
+<!-- Delete Confirmation Script -->
+<script>
+    function confirmDelete(id) {
+        if (confirm("Are you sure you want to delete this page?")) {
+            window.location.href = `/Admin/DeletePage?id=${id}`;
+        }
+    }
+</script>

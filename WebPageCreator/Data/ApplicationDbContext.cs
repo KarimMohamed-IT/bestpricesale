@@ -11,11 +11,6 @@ namespace bestpricesale.Data
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Page> Pages { get; set; }
-        public DbSet<Template> Templates { get; set; }
-        public DbSet<EventDetail> EventDetails { get; set; }
-        public DbSet<EventOption> EventOptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

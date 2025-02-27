@@ -23,11 +23,9 @@ namespace bestpricesale
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddRazorPages();
 
-            // Register repositories.
-            builder.Services.AddScoped<IPageRepository, PageRepository>();
-            builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+            // Register repositories
 
-            // Register application services.
+            // Register services
             builder.Services.AddScoped<IPageService, PageService>();
             builder.Services.AddScoped<ITemplateService, TemplateService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -35,6 +33,8 @@ namespace bestpricesale
 
             // Add Razor Pages support.
             builder.Services.AddRazorPages();
+
+            builder.Services.AddControllers();
 
             var app = builder.Build();
 
@@ -59,6 +59,8 @@ namespace bestpricesale
             app.UseAuthorization();
 
             app.MapRazorPages();
+
+            app.MapControllers();
             app.Run();
 
             //app.MapStaticAssets();

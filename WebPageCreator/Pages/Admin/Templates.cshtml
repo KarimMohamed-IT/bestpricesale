@@ -1,0 +1,36 @@
+﻿@page
+@model bestpricesale.Pages.Admin.TemplatesModel
+@{
+    ViewData["Title"] = "Manage Templates";
+}
+
+<h2>Manage Templates</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<form method="post">
+    <div class="form-group">
+        <label asp-for="TemplateName">Template Name</label>
+        <input asp-for="TemplateName" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="TemplateContent">Template Content (HTML &amp; CSS)</label>
+        <textarea asp-for="TemplateContent" class="form-control" rows="10"></textarea>
+    </div>
+    <button type="submit" asp-page-handler="Save" class="btn btn-primary">Save Template</button>
+    <button type="submit" asp-page-handler="Update" class="btn btn-secondary">Update Template</button>
+</form>
+
+<h3>Existing Templates</h3>
+@if (Model.ExistingTemplates.Any())
+{
+    <ul>
+        @foreach (var name in Model.ExistingTemplates)
+        {
+            <li>@name</li>
+        }
+    </ul>
+}

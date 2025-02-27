@@ -1,0 +1,89 @@
+﻿@page
+@model bestpricesale.Pages.PageEditorModel
+@{
+    ViewData["Title"] = "Page Editor";
+}
+
+<h2 class="mb-4">Page Editor</h2>
+
+<form method="post" id="pageForm">
+    <div class="form-group mb-3">
+        <label asp-for="Page.Title"></label>
+        <input asp-for="Page.Title" class="form-control" required />
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Page.Slug"></label>
+        <input asp-for="Page.Slug" class="form-control" required id="SlugInput" />
+        <span id="slugMessage"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label>Choose a Template</label>
+        <select id="templateDropdown" class="form-control" onchange="loadTemplate()">
+            <option value="">-- Select a Template --</option>
+            @foreach (var option in Model.TemplateOptions)
+            {
+                <option value="@option.Value">@option.Text</option>
+            }
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        <label>Content</label>
+        <!-- Container for the editor; we initialize CKEditor on the textarea inside -->
+        <div id="editorContainer">
+            <textarea id="editor" asp-for="Page.Content" class="form-control" rows="10"></textarea>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" id="fullscreenBtn" class="btn btn-secondary">Full Screen</button>
+    <button type="button" id="previewBtn" class="btn btn-success">Preview</button>
+</form>
+
+@section Scripts {
+    <script src="~/js/ckeditor/ckeditor.js"></script>
+    <script>
+      
+        // AJAX check for slug availability when the slug input loses focus.
+        document.getElementById('SlugInput').addEventListener('blur', async function () {
+            const slug = this.value;
+            if (!slug) return;
+            try {
+                const response = await fetch(`/Admin/PageEditor?handler=CheckSlug&slug=${encodeURIComponent(slug)}`);
+                const html = await response.text();
+                document.getElementById('slugMessage').innerHTML = html;
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        // Function to load template content into the editor.
+        async function loadTemplate() {
+            const templateName = document.getElementById('templateDropdown').value;
+            if (!templateName) return;
+            try {
+                const response = await fetch(`/Admin/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`);
+                if (!response.ok) throw new Error('Template not found.');
+                const content = await response.text();
+                // Set the editor's content to the template content.
+                editor.setData(content, function () {
+                    // Optionally, re-inject scripts if needed.
+                    // injectScripts(); // Uncomment if you have such a function.
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Full-screen mode.
+        document.getElementById('fullscreenBtn').addEventListener('click', function () {
+            CKEDITOR.instances.editor.execCommand('maximize');
+        });
+
+        // Preview button.
+        document.getElementById('previewBtn').addEventListener('click', function () {
+            const content = CKEDITOR.instances.editor.getData();
+            const previewWindow = window.open();
+            previewWindow.document.write(content);
+            previewWindow.document.close();
+        });
+    </script>
+}
