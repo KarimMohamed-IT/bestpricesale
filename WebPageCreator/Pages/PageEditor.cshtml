@@ -12,9 +12,19 @@
         <input asp-for="Page.Title" class="form-control" required />
     </div>
     <div class="form-group mb-3">
-        <label asp-for="Page.Slug"></label>
-        <input asp-for="Page.Slug" class="form-control" required id="SlugInput" />
+        <label asp-for="Page.Title"></label>
+        <input asp-for="Page.Title" class="form-control" required id="SlugInput" />
         <span id="slugMessage"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label>Version History</label>
+        <select asp-for="@Model.VersionOptions"
+                asp-items="Model.VersionOptions"
+                class="form-control"
+                onchange="loadVersion()"
+                disabled="@(Model.VersionOptions.Count == 0)">
+            <option value="">-- Select Version --</option>
+        </select>
     </div>
     <div class="form-group mb-3">
         <label>Choose a Template</label>
@@ -47,43 +57,12 @@
             const slug = this.value;
             if (!slug) return;
             try {
-                const response = await fetch(`/Admin/PageEditor?handler=CheckSlug&slug=${encodeURIComponent(slug)}`);
+                const response = await fetch(`/PageEditor?handler=CheckSlug&slug=${encodeURIComponent(slug)}`);
                 const html = await response.text();
                 document.getElementById('slugMessage').innerHTML = html;
             } catch (error) {
                 console.error(error);
             }
-        });
-
-        // Function to load template content into the editor.
-        async function loadTemplate() {
-            const templateName = document.getElementById('templateDropdown').value;
-            if (!templateName) return;
-            try {
-                const response = await fetch(`/Admin/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`);
-                if (!response.ok) throw new Error('Template not found.');
-                const content = await response.text();
-                // Set the editor's content to the template content.
-                editor.setData(content, function () {
-                    // Optionally, re-inject scripts if needed.
-                    // injectScripts(); // Uncomment if you have such a function.
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        // Full-screen mode.
-        document.getElementById('fullscreenBtn').addEventListener('click', function () {
-            CKEDITOR.instances.editor.execCommand('maximize');
-        });
-
-        // Preview button.
-        document.getElementById('previewBtn').addEventListener('click', function () {
-            const content = CKEDITOR.instances.editor.getData();
-            const previewWindow = window.open();
-            previewWindow.document.write(content);
-            previewWindow.document.close();
         });
     </script>
 }

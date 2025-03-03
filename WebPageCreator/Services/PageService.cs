@@ -1,79 +1,137 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Updated Page model for database storage
+using bestpricesale.Data;
 using bestpricesale.Models;
+using bestpricesale.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.ComponentModel.DataAnnotations;
 
-namespace bestpricesale.Services
+
+// Updated PageService using EF Core
+public class PageService : IPageService
 {
-    public class PageService : IPageService
+    private readonly ApplicationDbContext _context;
+    private readonly IMemoryCache _cache;
+
+    public PageService(ApplicationDbContext context, IMemoryCache cache)
     {
-        private readonly string _pagesFolder;
+        _context = context;
+        _cache = cache;
+    }
 
-        public PageService()
+    public async Task CreatePageAsync(Page page)
+    {
+        page.Title = page.Title.ToLowerInvariant();
+        _context.Pages.Add(page);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdatePageAsync(Page page)
+    {
+        var existingPage = await _context.Pages.FindAsync(page.Id);
+        if (existingPage != null)
         {
-            // Set the folder to store pages as HTML files.
-            _pagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "Pages");
-            if (!Directory.Exists(_pagesFolder))
+            existingPage.Content = page.Content;
+            existingPage.UpdatedAt = DateTime.UtcNow;
+            existingPage.Version++;
+            await _context.SaveChangesAsync();
+
+            // Clear cache
+            _cache.Remove($"page_{existingPage.Title}");
+        }
+    }
+
+    public async Task DeletePageAsync(string slug)
+    {
+        var page = await _context.Pages
+            .FirstOrDefaultAsync(p => p.Title == slug);
+
+        if (page != null)
+        {
+            _context.Pages.Remove(page);
+            await _context.SaveChangesAsync();
+            _cache.Remove($"page_{slug}");
+        }
+    }
+
+    public async Task<bool> PageExistsAsync(string slug)
+    {
+        return await _context.Pages
+            .AnyAsync(p => p.Title == slug.ToLower());
+    }
+
+    public async Task<IEnumerable<Page>> GetAllPagesAsync()
+    {
+        return await _context.Pages
+            .AsNoTracking()
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+    }
+
+    public async Task<Page> GetPageBySlugAsync(string slug)
+    {
+        return await _cache.GetOrCreateAsync($"page_{slug}", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+            return await _context.Pages
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Title == slug.ToLower());
+        });
+    }
+
+    public async Task UpdatePageAsync(string slug, string content)
+    {
+        var page = await _context.Pages
+            .FirstOrDefaultAsync(p => p.Title == slug);
+
+        if (page != null)
+        {
+            // Save current version before updating
+            var version = new PageVersion
             {
-                Directory.CreateDirectory(_pagesFolder);
-            }
-        }
+                PageId = page.Id,
+                Content = page.Content,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        // Save the page's HTML content using the slug as filename.
-        public async Task CreatePageAsync(Page page)
-        {
-            string filePath = Path.Combine(_pagesFolder, $"{page.Slug}.html");
-            await File.WriteAllTextAsync(filePath, page.Content);
-        }
+            _context.PageVersions.Add(version);
 
-        // Update an existing page.
-        public async Task UpdatePageAsync(Page page)
-        {
-            string filePath = Path.Combine(_pagesFolder, $"{page.Slug}.html");
-            await File.WriteAllTextAsync(filePath, page.Content);
-        }
+            page.Content = content;
+            page.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
 
-        // Delete a page by slug.
-        public async Task DeletePageAsync(string slug)
-        {
-            string filePath = Path.Combine(_pagesFolder, $"{slug}.html");
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-            await Task.CompletedTask;
+            _cache.Remove($"page_{page.Title}");
         }
+    }
 
-        // Check if a page exists (by slug).
-        public async Task<bool> PageExistsAsync(string slug)
-        {
-            string filePath = Path.Combine(_pagesFolder, $"{slug}.html");
-            return await Task.FromResult(File.Exists(filePath));
-        }
+    public async Task<IEnumerable<PageVersion>> GetPageHistoryAsync(string slug)
+    {
+        return await _context.PageVersions
+            .Where(v => v.Page.Title == slug)
+            .OrderByDescending(v => v.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
-        // Load all pages.
-        public async Task<IEnumerable<Page>> GetAllPagesAsync()
-        {
-            var pages = new List<Page>();
-            var files = Directory.GetFiles(_pagesFolder, "*.html");
-            foreach (var file in files)
-            {
-                var content = await File.ReadAllTextAsync(file);
-                var slug = Path.GetFileNameWithoutExtension(file);
-                pages.Add(new Page { Slug = slug, Content = content });
-            }
-            return pages;
-        }
+    public async Task RestorePageVersionAsync(Guid versionId)
+    {
+        var version = await _context.PageVersions
+            .Include(v => v.Page)
+            .FirstOrDefaultAsync(v => v.Id == versionId);
 
-        // Load a page by its slug.
-        public async Task<Page> GetPageBySlugAsync(string slug)
+        if (version != null)
         {
-            string filePath = Path.Combine(_pagesFolder, $"{slug}.html");
-            if (!File.Exists(filePath))
-                return null;
-            var content = await File.ReadAllTextAsync(filePath);
-            return new Page { Slug = slug, Content = content };
+            version.Page.Content = version.Content;
+            version.Page.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            _cache.Remove($"page_{version.Page.Title}");
         }
+    }
+
+    public async Task<PageVersion> GetPageVersionAsync(Guid versionId)
+    {
+        return await _context.PageVersions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(v => v.Id == versionId);
     }
 }

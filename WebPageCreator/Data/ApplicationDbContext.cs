@@ -9,9 +9,12 @@ namespace bestpricesale.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            Database.EnsureCreated();
         }
 
-
+        public DbSet<Page> Pages { get; set; }
+        public DbSet<Template> Templates { get; set; }
+        public DbSet<PageVersion> PageVersions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

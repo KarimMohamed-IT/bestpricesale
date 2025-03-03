@@ -19,7 +19,8 @@ namespace bestpricesale.Pages
 
         public async Task OnGetAsync()
         {
-            Pages = (await _pageService.GetAllPagesAsync()).ToList();
+            var pages = await _pageService.GetAllPagesAsync();
+            Pages = pages.ToList();
         }
 
         public async Task<IActionResult> OnGetDeletePageAsync(string slug)

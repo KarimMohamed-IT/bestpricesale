@@ -1,40 +1,46 @@
 ﻿@page
 @model bestpricesale.Pages.IndexModel
 @{
-    ViewData["Title"] = "Pages Management";
+    ViewData["Title"] = "Best Sales Prices";
 }
 
 <!-- Import Bootstrap (if not already included) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
 <div class="container mt-5">
-    <h2 class="mb-4 text-center">Pages Management</h2>
+    <h2 class="mb-4 text-center">Welcome to Best Sales Prices</h2>
 
-    <div class="d-flex justify-content-between mb-3">
-        <a href="/PageEditor" class="btn btn-primary">+ Create New Page</a>
-    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="d-flex justify-content-between mb-3">
+            <a href="/PageEditor" class="btn btn-primary">+ Create New Page</a>
+        </div>
+    }
 
     @if (Model.Pages.Any())
     {
         <table class="table table-bordered table-hover shadow-sm">
             <thead class="table-dark">
                 <tr>
-                    <th>#</th>
                     <th>Title</th>
-                    <th>Slug</th>
-                    <th>Actions</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>Actions</th>
+                    }
                 </tr>
             </thead>
             <tbody>
                 @foreach (var pageload in Model.Pages)
                 {
                     <tr>
-                        <td>@pageload.Title</td>
-                        <td><a href="/PageShell/@pageload.Slug" target="_blank">@pageload.Slug</a></td>
-                        <td>
-                            <a href="/PageEditor?slug=@pageload.Slug" class="btn btn-warning btn-sm">✏ Edit</a>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(@pageload.Slug)">🗑 Delete</button>
-                        </td>
+                        <td><a href="/PageShell/@pageload.Title" target="_blank">@pageload.Title</a></td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td>
+                                <a href="/PageEditor?slug=@pageload.Title" class="btn btn-warning btn-sm">✏ Edit</a>
+                                <button class="btn btn-danger btn-sm" onclick="confirmDelete(@pageload.Title)">🗑 Delete</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

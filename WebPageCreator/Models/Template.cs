@@ -1,12 +1,15 @@
-﻿namespace bestpricesale.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+public class Template
 {
-    using System.ComponentModel.DataAnnotations;
+    public Guid Id { get; set; }
 
-    public class Template
-    {
-        public string Name { get; set; }  // e.g., "Event", "Product"
+    [Required, StringLength(100)]
+    public string Name { get; set; }
 
-        public string Content { get; set; }
-    }
+    [Required]
+    public string Content { get; set; }
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

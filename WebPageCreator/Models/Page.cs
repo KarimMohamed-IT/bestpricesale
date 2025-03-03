@@ -1,15 +1,33 @@
-﻿namespace bestpricesale.Models
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace bestpricesale.Models
 {
     public class Page
     {
-        // The unique identifier used for filenames and URL slugs.
-        public string Slug { get; set; }
+        public Guid Id { get; set; }
 
-        public string Title { get; set; }
+        [Required, StringLength(150)]
+        public string Title  { get; set; }
 
-        // The full HTML content of the page.
+        [Required]
         public string Content { get; set; }
 
-        // (Optional) Other properties like Template name can be added here.
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public string AuthorId { get; set; }
+        public int Version { get; set; } = 1;
+        public List<PageVersion> Versions { get; set; } = new();
+    }
+
+    public class PageVersion
+    {
+        public Guid Id { get; set; }
+        public Guid PageId { get; set; }
+        public Page Page { get; set; }
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string AuthorId { get; set; }
+        public int VersionNumber { get; set; }
     }
 }

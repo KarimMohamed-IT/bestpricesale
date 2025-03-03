@@ -1,50 +1,56 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+using bestpricesale.Data;
 using bestpricesale.Models;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 namespace bestpricesale.Services
 {
-    public interface ITemplateService
-    {
-        Task<IEnumerable<Template>> GetAllTemplatesAsync();
-        Task SaveTemplateAsync(Template template);
-    }
-
     public class TemplateService : ITemplateService
     {
-        private readonly IWebHostEnvironment _env;
-        private readonly string _templatesFolder;
+        private readonly ApplicationDbContext _context;
 
-        public TemplateService(IWebHostEnvironment env)
+        public TemplateService(ApplicationDbContext context)
         {
-            _env = env;
-            // Use ContentRootPath so templates are saved locally in a folder named "Template"
-            _templatesFolder = Path.Combine(_env.ContentRootPath, "Template");
-            if (!Directory.Exists(_templatesFolder))
-            {
-                Directory.CreateDirectory(_templatesFolder);
-            }
+            _context = context;
         }
 
         public async Task<IEnumerable<Template>> GetAllTemplatesAsync()
         {
-            var files = Directory.GetFiles(_templatesFolder, "*.html");
-            var templates = files.Select(file => new Template
-            {
-                Name = Path.GetFileNameWithoutExtension(file),
-                Content = File.ReadAllText(file)
-            });
-            return await Task.FromResult(templates);
+            return await _context.Templates
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task SaveTemplateAsync(Template template)
         {
-            var filePath = Path.Combine(_templatesFolder, $"{template.Name}.html");
-            File.WriteAllText(filePath, template.Content);
-            await Task.CompletedTask;
+            _context.Templates.Add(template);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTemplateAsync(Template template)
+        {
+            _context.Templates.Update(template);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteTemplateAsync(string name)
+        {
+            var template = await _context.Templates
+                .FirstOrDefaultAsync(t => t.Name == name);
+
+            if (template != null)
+            {
+                _context.Templates.Remove(template);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Template> GetTemplateByNameAsync(string name)
+        {
+            return await _context.Templates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Name == name);
         }
     }
 }

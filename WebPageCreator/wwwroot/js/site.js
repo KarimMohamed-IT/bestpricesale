@@ -2,10 +2,15 @@
 
 // Initialize CKEditor with the slider plugin.
 const editor = CKEDITOR.replace('editor', {
-    allowedContent: true, // Disable filtering.
+    allowedContent: true,
     extraPlugins: 'slider,colorbutton,font,justify',
-    protectedSource: [/<script[\s\S]*?<\/script>/gi],
-    extraAllowedContent: { script: true },
+    protectedSource: [
+        /<script[\s\S]*?<\/script>/gi,
+        /<meta[\s\S]*?>/gi,
+        /<link[\s\S]*?>/gi
+    ],
+    coreStyles_bold: { element: 'b' },
+    removeButtons: '',
     toolbar: [
         { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike'] },
         { name: 'paragraph', items: ['NumberedList', 'BulletedList', 'Blockquote'] },
@@ -15,37 +20,20 @@ const editor = CKEDITOR.replace('editor', {
         { name: 'colors', items: ['TextColor', 'BGColor'] },
         { name: 'tools', items: ['Maximize', 'Source'] }
     ],
-    height: 500
-});
+    height: 500,
+    on: {
+        instanceReady: function () {
+            this.dataProcessor.htmlFilter.addRules({
+                elements: {
+                    script: function (element) {
+                        return element;
+                    }
+                }
+            });
+        }
+    }
+  });
 
-//// Sync content with the IFrame
-//editor.on('change', function () {
-//    const content = editor.getData();
-//    const preview = document.getElementById('livePreview');
-//    preview.srcdoc = content;
-
-
-
-
-//    const iframeDocument = editor.document.$; // Access the iframe's document.
-//      iframeDocument.head.appendChild(script);
-//    const script = iframeDocument.createElement('script');
-//    script.src = "../js/JSInject.js"; // Path to your slider JS file.
-//    script.type = 'text/javascript';
-//    iframeDocument.head.appendChild(script);
-//});
-
-
-
-// A simple debounce function to limit how often we fire the AJAX call.
-//function debounce(func, wait) {
-//    let timeout;
-//    return function () {
-//        const context = this, args = arguments;
-//        clearTimeout(timeout);
-//        timeout = setTimeout(() => func.apply(context, args), wait);
-//    };
-//}
 
 function getToken() {
     return $('input[name="__RequestVerificationToken"]').val();
@@ -116,6 +104,50 @@ function injectScripts() {
     CKEDITOR.instances.editor.setData(cleanedContent);
 }
 
+
+//function injectScripts() {
+//    const iframeDocument = editor.document.$;
+//    const content = editor.getData();
+
+//    // Clear existing scripts
+//    const existingScripts = iframeDocument.querySelectorAll('script');
+//    existingScripts.forEach(script => script.remove());
+
+//    // Create parser with script preservation
+//    const doc = new DOMParser().parseFromString(content, 'text/html');
+//    const scripts = doc.querySelectorAll('script');
+
+//    scripts.forEach(script => {
+//        const newScript = iframeDocument.createElement('script');
+//        newScript.textContent = script.textContent;
+
+//        // Copy attributes
+//        Array.from(script.attributes).forEach(attr => {
+//            newScript.setAttribute(attr.name, attr.value);
+//        });
+
+//        iframeDocument.body.appendChild(newScript);
+//    });
+
+//    // Reinitialize dynamic components
+//    if (typeof initSliders === 'function') {
+//        initSliders();
+//    }
+/*}*/
+
+async function loadVersion() {
+    const versionId = document.getElementById('versionDropdown').value;
+    if (!versionId) return;
+
+    try {
+        const response = await fetch(`/PageEditor?handler=LoadVersion&versionId=${versionId}`);
+        const content = await response.text();
+        editor.setData(content);
+        injectScripts();
+    } catch (error) {
+        console.error('Version load failed:', error);
+    }
+}
 
 // Update textarea on form submission
 document.getElementById('pageForm').addEventListener('submit', function (e) {
