@@ -4,11 +4,6 @@
 const editor = CKEDITOR.replace('editor', {
     allowedContent: true,
     extraPlugins: 'slider,colorbutton,font,justify',
-    protectedSource: [
-        /<script[\s\S]*?<\/script>/gi,
-        /<meta[\s\S]*?>/gi,
-        /<link[\s\S]*?>/gi
-    ],
     coreStyles_bold: { element: 'b' },
     removeButtons: '',
     toolbar: [
