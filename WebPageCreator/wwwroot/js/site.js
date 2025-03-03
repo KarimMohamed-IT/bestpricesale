@@ -1,9 +1,8 @@
-﻿
-const editor = CKEDITOR.replace('editor', {
-    allowedContent: true,
+﻿const editor = CKEDITOR.replace('editor', {
+    allowedContent: true, // Disable filtering.
     extraPlugins: 'slider,colorbutton,font,justify',
-    coreStyles_bold: { element: 'b' },
-    removeButtons: '',
+    protectedSource: [/<script[\s\S]*?<\/script>/gi],
+    extraAllowedContent: { script: true },
     toolbar: [
         { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike'] },
         { name: 'paragraph', items: ['NumberedList', 'BulletedList', 'Blockquote'] },
@@ -13,55 +12,8 @@ const editor = CKEDITOR.replace('editor', {
         { name: 'colors', items: ['TextColor', 'BGColor'] },
         { name: 'tools', items: ['Maximize', 'Source'] }
     ],
-    height: 500,
-    on: {
-        instanceReady: function () {
-            this.dataProcessor.htmlFilter.addRules({
-                elements: {
-                    script: function (element) {
-                        return element;
-                    }
-                }
-            });
-        }
-    }
-  });
-
-function getToken() {
-    return $('input[name="__RequestVerificationToken"]').val();
-}
-
-
-function confirmDelete(title) {
-    if (confirm("Are you sure you want to delete this page?")) {
-        window.location.href = `/Index?handler=DeletePageAsync?slug=${title}`;
-    }
-}
-
-
-async function loadTemplate() {
-    const templateName = document.getElementById('templateDropdown').value;
-    if (!templateName) return;
-
-    try {
-        // Fetch the template content from your Razor Page handler.
-        let src = `/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`;
-        const response = await fetch(src);
-        if (!response.ok) throw new Error('Template not found.');
-        const content = await response.text();
-
-        // Set the editor data with the loaded template
-        editor.setData(content);
-
-        // Wait a little to ensure the editor updates before injecting scripts
-        setTimeout(() => {
-            injectScripts();
-        }, 100); // Small delay to ensure content is fully loaded before injecting scripts
-
-    } catch (error) {
-        console.error(error);
-    }
-}
+    height: 500
+});
 
 editor.on('mode', function () {
     if (editor.mode != 'source') {
@@ -102,6 +54,82 @@ function injectScripts() {
     // Set the cleaned content without modifying scripts inside it
     CKEDITOR.instances.editor.setData(cleanedContent);
 }
+
+function getToken() {
+    return $('input[name="__RequestVerificationToken"]').val();
+}
+
+
+function confirmDelete(title) {
+    if (confirm("Are you sure you want to delete this page?")) {
+        window.location.href = `/Index?handler=DeletePageAsync?slug=${title}`;
+    }
+}
+
+
+async function loadTemplate() {
+    const templateName = document.getElementById('templateDropdown').value;
+    if (!templateName) return;
+
+    try {
+        // Fetch the template content from your Razor Page handler.
+        let src = `/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`;
+        const response = await fetch(src);
+        if (!response.ok) throw new Error('Template not found.');
+        const content = await response.text();
+
+        // Set the editor data with the loaded template
+        editor.setData(content);
+
+        // Wait a little to ensure the editor updates before injecting scripts
+        setTimeout(() => {
+            injectScripts();
+        }, 100); // Small delay to ensure content is fully loaded before injecting scripts
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//editor.on('mode', function () {
+//    if (editor.mode != 'source') {
+//        injectScripts();
+//    }
+//});
+
+//function injectScripts() {
+//    var content = editor.getData();
+//    var parser = new DOMParser();
+//    var doc = parser.parseFromString(content, 'text/html');
+
+//    var scripts = doc.querySelectorAll('script'); // Get all script elements
+//    var cleanedContent = content; // Keep the content as is for now
+
+//    const iframeDocument = editor.document.$;
+//    const iframeHtml = $(iframeDocument).children('html')[0];
+
+//    // Remove existing scripts to avoid duplication
+//    $(iframeHtml).find('script').remove();
+
+//    // Inject each script separately
+//    scripts.forEach(script => {
+//        var newScript = iframeDocument.createElement('script');
+//        newScript.type = script.type || 'text/javascript';
+
+//        if (script.src) {
+//            // If script has a src, copy it and set as external script
+//            newScript.src = script.src;
+//        } else {
+//            // If inline script, copy the text content
+//            newScript.textContent = script.textContent;
+//        }
+
+//        iframeDocument.body.appendChild(newScript);
+//    });
+
+//    // Set the cleaned content without modifying scripts inside it
+//    CKEDITOR.instances.editor.setData(cleanedContent);
+//}
 
 
 //function injectScripts() {
