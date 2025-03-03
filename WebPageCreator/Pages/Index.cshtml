@@ -1,4 +1,4 @@
-﻿@page
+﻿@page 
 @model bestpricesale.Pages.IndexModel
 @{
     ViewData["Title"] = "Best Sales Prices";
@@ -13,7 +13,7 @@
     @if (User.IsInRole("Admin"))
     {
         <div class="d-flex justify-content-between mb-3">
-            <a href="/PageEditor" class="btn btn-primary">+ Create New Page</a>
+            <a href="/PageEditor" class="btn btn-primary">+ Създай нова страница</a>
         </div>
     }
 
@@ -37,8 +37,8 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <td>
-                                <a href="/PageEditor?slug=@pageload.Title" class="btn btn-warning btn-sm">✏ Edit</a>
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete(@pageload.Title)">🗑 Delete</button>
+                                <a href="/PageEditor?slug=@pageload.Title" class="btn btn-warning btn-sm">✏ Редактиране</a>
+                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('@pageload.Title')">🗑 Изтрий</button>
                             </td>
                         }
                     </tr>
@@ -56,10 +56,3 @@
 </div>
 
 <!-- Delete Confirmation Script -->
-<script>
-    function confirmDelete(id) {
-        if (confirm("Are you sure you want to delete this page?")) {
-            window.location.href = `/Admin/DeletePage?id=${id}`;
-        }
-    }
-</script>

@@ -1,6 +1,4 @@
-﻿// Initial load
-
-// Initialize CKEditor with the slider plugin.
+﻿
 const editor = CKEDITOR.replace('editor', {
     allowedContent: true,
     extraPlugins: 'slider,colorbutton,font,justify',
@@ -29,9 +27,15 @@ const editor = CKEDITOR.replace('editor', {
     }
   });
 
-
 function getToken() {
     return $('input[name="__RequestVerificationToken"]').val();
+}
+
+
+function confirmDelete(title) {
+    if (confirm("Are you sure you want to delete this page?")) {
+        window.location.href = `/Index?handler=DeletePageAsync?slug=${title}`;
+    }
 }
 
 
@@ -65,70 +69,70 @@ editor.on('mode', function () {
     }
 });
 
-//function injectScripts() {
-//    var content = editor.getData();
-//    var parser = new DOMParser();
-//    var doc = parser.parseFromString(content, 'text/html');
-
-//    var scripts = doc.querySelectorAll('script'); // Get all script elements
-//    var cleanedContent = content; // Keep the content as is for now
-
-//    const iframeDocument = editor.document.$;
-//    const iframeHtml = $(iframeDocument).children('html')[0];
-
-//    // Remove existing scripts to avoid duplication
-//    $(iframeHtml).find('script').remove();
-
-//    // Inject each script separately
-//    scripts.forEach(script => {
-//        var newScript = iframeDocument.createElement('script');
-//        newScript.type = script.type || 'text/javascript';
-
-//        if (script.src) {
-//            // If script has a src, copy it and set as external script
-//            newScript.src = script.src;
-//        } else {
-//            // If inline script, copy the text content
-//            newScript.textContent = script.textContent;
-//        }
-
-//        iframeDocument.body.appendChild(newScript);
-//    });
-
-//    // Set the cleaned content without modifying scripts inside it
-//    CKEDITOR.instances.editor.setData(cleanedContent);
-//}
-
-
 function injectScripts() {
+    var content = editor.getData();
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(content, 'text/html');
+
+    var scripts = doc.querySelectorAll('script'); // Get all script elements
+    var cleanedContent = content; // Keep the content as is for now
+
     const iframeDocument = editor.document.$;
-    const content = editor.getData();
+    const iframeHtml = $(iframeDocument).children('html')[0];
 
-    // Clear existing scripts
-    const existingScripts = iframeDocument.querySelectorAll('script');
-    existingScripts.forEach(script => script.remove());
+    // Remove existing scripts to avoid duplication
+    $(iframeHtml).find('script').remove();
 
-    // Create parser with script preservation
-    const doc = new DOMParser().parseFromString(content, 'text/html');
-    const scripts = doc.querySelectorAll('script');
-
+    // Inject each script separately
     scripts.forEach(script => {
-        const newScript = iframeDocument.createElement('script');
-        newScript.textContent = script.textContent;
+        var newScript = iframeDocument.createElement('script');
+        newScript.type = script.type || 'text/javascript';
 
-        // Copy attributes
-        Array.from(script.attributes).forEach(attr => {
-            newScript.setAttribute(attr.name, attr.value);
-        });
+        if (script.src) {
+            // If script has a src, copy it and set as external script
+            newScript.src = script.src;
+        } else {
+            // If inline script, copy the text content
+            newScript.textContent = script.textContent;
+        }
 
         iframeDocument.body.appendChild(newScript);
     });
 
-    // Reinitialize dynamic components
-    if (typeof initSliders === 'function') {
-        initSliders();
-    }
+    // Set the cleaned content without modifying scripts inside it
+    CKEDITOR.instances.editor.setData(cleanedContent);
 }
+
+
+//function injectScripts() {
+//    const iframeDocument = editor.document.$;
+//    const content = editor.getData();
+
+//    // Clear existing scripts
+//    const existingScripts = iframeDocument.querySelectorAll('script');
+//    existingScripts.forEach(script => script.remove());
+
+//    // Create parser with script preservation
+//    const doc = new DOMParser().parseFromString(content, 'text/html');
+//    const scripts = doc.querySelectorAll('script');
+
+//    scripts.forEach(script => {
+//        const newScript = iframeDocument.createElement('script');
+//        newScript.textContent = script.textContent;
+
+//        // Copy attributes
+//        Array.from(script.attributes).forEach(attr => {
+//            newScript.setAttribute(attr.name, attr.value);
+//        });
+
+//        iframeDocument.body.appendChild(newScript);
+//    });
+
+//    // Reinitialize dynamic components
+//    if (typeof initSliders === 'function') {
+//        initSliders();
+//    }
+//}
 
 async function loadVersion() {
     const versionId = document.getElementById('versionDropdown').value;

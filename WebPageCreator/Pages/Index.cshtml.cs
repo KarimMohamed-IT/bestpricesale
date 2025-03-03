@@ -16,6 +16,8 @@ namespace bestpricesale.Pages
         }
 
         public List<bestpricesale.Models.Page> Pages { get; set; }
+        [BindProperty]
+        public string Slug { get; set; }
 
         public async Task OnGetAsync()
         {
@@ -23,7 +25,7 @@ namespace bestpricesale.Pages
             Pages = pages.ToList();
         }
 
-        public async Task<IActionResult> OnGetDeletePageAsync(string slug)
+        public async Task<IActionResult> OnPostDeletePageAsync(string slug)
         {
             await _pageService.DeletePageAsync(slug); // Delete by ID directly
             return RedirectToPage();
