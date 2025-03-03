@@ -1,4 +1,7 @@
-﻿const editor = CKEDITOR.replace('editor', {
+﻿// Initial load
+
+// Initialize CKEditor with the slider plugin.
+const editor = CKEDITOR.replace('editor', {
     allowedContent: true, // Disable filtering.
     extraPlugins: 'slider,colorbutton,font,justify',
     protectedSource: [/<script[\s\S]*?<\/script>/gi],
@@ -14,6 +17,64 @@
     ],
     height: 500
 });
+
+//// Sync content with the IFrame
+//editor.on('change', function () {
+//    const content = editor.getData();
+//    const preview = document.getElementById('livePreview');
+//    preview.srcdoc = content;
+
+
+
+
+//    const iframeDocument = editor.document.$; // Access the iframe's document.
+//      iframeDocument.head.appendChild(script);
+//    const script = iframeDocument.createElement('script');
+//    script.src = "../js/JSInject.js"; // Path to your slider JS file.
+//    script.type = 'text/javascript';
+//    iframeDocument.head.appendChild(script);
+//});
+
+
+
+// A simple debounce function to limit how often we fire the AJAX call.
+//function debounce(func, wait) {
+//    let timeout;
+//    return function () {
+//        const context = this, args = arguments;
+//        clearTimeout(timeout);
+//        timeout = setTimeout(() => func.apply(context, args), wait);
+//    };
+//}
+
+function getToken() {
+    return $('input[name="__RequestVerificationToken"]').val();
+}
+
+
+async function loadTemplate() {
+    const templateName = document.getElementById('templateDropdown').value;
+    if (!templateName) return;
+
+    try {
+        // Fetch the template content from your Razor Page handler.
+        let src = `/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`;
+        const response = await fetch(src);
+        if (!response.ok) throw new Error('Template not found.');
+        const content = await response.text();
+
+        // Set the editor data with the loaded template
+        editor.setData(content);
+
+        // Wait a little to ensure the editor updates before injecting scripts
+        setTimeout(() => {
+            injectScripts();
+        }, 100); // Small delay to ensure content is fully loaded before injecting scripts
+
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 editor.on('mode', function () {
     if (editor.mode != 'source') {
@@ -55,126 +116,6 @@ function injectScripts() {
     CKEDITOR.instances.editor.setData(cleanedContent);
 }
 
-function getToken() {
-    return $('input[name="__RequestVerificationToken"]').val();
-}
-
-
-function confirmDelete(title) {
-    if (confirm("Are you sure you want to delete this page?")) {
-        window.location.href = `/Index?handler=DeletePageAsync?slug=${title}`;
-    }
-}
-
-
-async function loadTemplate() {
-    const templateName = document.getElementById('templateDropdown').value;
-    if (!templateName) return;
-
-    try {
-        // Fetch the template content from your Razor Page handler.
-        let src = `/PageEditor?handler=LoadTemplate&name=${encodeURIComponent(templateName)}`;
-        const response = await fetch(src);
-        if (!response.ok) throw new Error('Template not found.');
-        const content = await response.text();
-
-        // Set the editor data with the loaded template
-        editor.setData(content);
-
-        // Wait a little to ensure the editor updates before injecting scripts
-        setTimeout(() => {
-            injectScripts();
-        }, 100); // Small delay to ensure content is fully loaded before injecting scripts
-
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-//editor.on('mode', function () {
-//    if (editor.mode != 'source') {
-//        injectScripts();
-//    }
-//});
-
-//function injectScripts() {
-//    var content = editor.getData();
-//    var parser = new DOMParser();
-//    var doc = parser.parseFromString(content, 'text/html');
-
-//    var scripts = doc.querySelectorAll('script'); // Get all script elements
-//    var cleanedContent = content; // Keep the content as is for now
-
-//    const iframeDocument = editor.document.$;
-//    const iframeHtml = $(iframeDocument).children('html')[0];
-
-//    // Remove existing scripts to avoid duplication
-//    $(iframeHtml).find('script').remove();
-
-//    // Inject each script separately
-//    scripts.forEach(script => {
-//        var newScript = iframeDocument.createElement('script');
-//        newScript.type = script.type || 'text/javascript';
-
-//        if (script.src) {
-//            // If script has a src, copy it and set as external script
-//            newScript.src = script.src;
-//        } else {
-//            // If inline script, copy the text content
-//            newScript.textContent = script.textContent;
-//        }
-
-//        iframeDocument.body.appendChild(newScript);
-//    });
-
-//    // Set the cleaned content without modifying scripts inside it
-//    CKEDITOR.instances.editor.setData(cleanedContent);
-//}
-
-
-//function injectScripts() {
-//    const iframeDocument = editor.document.$;
-//    const content = editor.getData();
-
-//    // Clear existing scripts
-//    const existingScripts = iframeDocument.querySelectorAll('script');
-//    existingScripts.forEach(script => script.remove());
-
-//    // Create parser with script preservation
-//    const doc = new DOMParser().parseFromString(content, 'text/html');
-//    const scripts = doc.querySelectorAll('script');
-
-//    scripts.forEach(script => {
-//        const newScript = iframeDocument.createElement('script');
-//        newScript.textContent = script.textContent;
-
-//        // Copy attributes
-//        Array.from(script.attributes).forEach(attr => {
-//            newScript.setAttribute(attr.name, attr.value);
-//        });
-
-//        iframeDocument.body.appendChild(newScript);
-//    });
-
-//    // Reinitialize dynamic components
-//    if (typeof initSliders === 'function') {
-//        initSliders();
-//    }
-//}
-
-async function loadVersion() {
-    const versionId = document.getElementById('versionDropdown').value;
-    if (!versionId) return;
-
-    try {
-        const response = await fetch(`/PageEditor?handler=LoadVersion&versionId=${versionId}`);
-        const content = await response.text();
-        editor.setData(content);
-        injectScripts();
-    } catch (error) {
-        console.error('Version load failed:', error);
-    }
-}
 
 // Update textarea on form submission
 document.getElementById('pageForm').addEventListener('submit', function (e) {
@@ -201,6 +142,3 @@ document.getElementById('previewBtn').addEventListener('click', function () {
 editor.on('instanceReady', function () {
     document.getElementById("cke_notifications_area_editor").remove();
 });
-
-
-
