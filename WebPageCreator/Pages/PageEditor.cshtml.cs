@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.ObjectModel;
 
 namespace bestpricesale.Pages
 {
@@ -16,6 +17,7 @@ namespace bestpricesale.Pages
         private readonly IPageService _pageService;
         private readonly ITemplateService _templateService;
         private readonly UserManager<IdentityUser> _userManager;
+       
 
         public PageEditorModel(
             IPageService pageService,
@@ -25,12 +27,11 @@ namespace bestpricesale.Pages
             _pageService = pageService;
             _templateService = templateService;
             this._userManager = userManager;
-            //var user = await _userManager.GetUserAsync(User);
-            //Page.AuthorId = user?.Id ?? throw new UnauthorizedAccessException();
         }
 
         [BindProperty]
         public Models.Page Page { get; set; }
+        
 
         public List<SelectListItem> TemplateOptions { get; set; } = new();
         public List<SelectListItem> VersionOptions { get; set; } = new();
@@ -39,6 +40,7 @@ namespace bestpricesale.Pages
         {
             await LoadPageData(slug);
             await LoadTemplates();
+            await BuildAuthorIdAsync();
         }
 
         private async Task LoadPageData(string slug)
@@ -52,6 +54,11 @@ namespace bestpricesale.Pages
             {
                 Page = new Models.Page { Title = slug };
             }
+        }
+         public async Task BuildAuthorIdAsync()
+        {
+             IdentityUser user = await _userManager.GetUserAsync(User);
+            Page.AuthorId= user.Id;
         }
 
         private async Task LoadVersionHistory(string slug)
@@ -106,7 +113,8 @@ namespace bestpricesale.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
-
+            ModelState.Remove("Page.AuthorId");
+            await BuildAuthorIdAsync();
             if (!ModelState.IsValid)
             {
                 await LoadTemplates();

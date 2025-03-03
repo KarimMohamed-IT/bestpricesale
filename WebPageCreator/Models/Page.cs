@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace bestpricesale.Models
@@ -15,6 +16,8 @@ namespace bestpricesale.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        [BindNever]
         public string AuthorId { get; set; }
         public int Version { get; set; } = 1;
         public List<PageVersion> Versions { get; set; } = new();
