@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace bestpricesale.Pages
 {
@@ -14,13 +15,18 @@ namespace bestpricesale.Pages
     {
         private readonly IPageService _pageService;
         private readonly ITemplateService _templateService;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public PageEditorModel(
             IPageService pageService,
-            ITemplateService templateService)
+            ITemplateService templateService,
+            UserManager<IdentityUser> userManager)
         {
             _pageService = pageService;
             _templateService = templateService;
+            this._userManager = userManager;
+            //var user = await _userManager.GetUserAsync(User);
+            //Page.AuthorId = user?.Id ?? throw new UnauthorizedAccessException();
         }
 
         [BindProperty]
@@ -100,6 +106,7 @@ namespace bestpricesale.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+
             if (!ModelState.IsValid)
             {
                 await LoadTemplates();

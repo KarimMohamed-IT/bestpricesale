@@ -12,6 +12,11 @@ namespace bestpricesale
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            //var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");;
+
+            //builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+
+            //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Configuration Setup
             var configuration = builder.Configuration;
@@ -51,7 +56,7 @@ namespace bestpricesale
 
         private static void ConfigureAuthenticationAndAuthorization(WebApplicationBuilder builder)
         {
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequiredLength = 8;
@@ -62,7 +67,7 @@ namespace bestpricesale
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .AddPasswordValidator<StrongPasswordValidator<ApplicationUser>>();
+                .AddDefaultUI();
 
             builder.Services.AddAuthorization(options =>
             {
@@ -85,7 +90,8 @@ namespace bestpricesale
             builder.Services.AddScoped<ITemplateService, TemplateService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-            builder.Services.AddRazorPages(options => {
+            builder.Services.AddRazorPages(options =>
+            {
                 options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
             });
 
@@ -147,36 +153,6 @@ namespace bestpricesale
             {
                 await roleManager.CreateAsync(new IdentityRole(adminRole));
             }
-        }
-    }
-
-    // Custom user class for future extensibility
-    public class ApplicationUser : IdentityUser
-    {
-        [Required, MaxLength(100)]
-        public string FullName { get; set; } = string.Empty;
-    }
-
-    // Strong password validation
-    public class StrongPasswordValidator<TUser> : PasswordValidator<TUser> where TUser : class
-    {
-        public override async Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
-        {
-            var result = await base.ValidateAsync(manager, user, password);
-            var errors = result.Succeeded ? new List<IdentityError>() : result.Errors.ToList();
-
-            if (password.Contains("123"))
-            {
-                errors.Add(new IdentityError
-                {
-                    Code = "PasswordTooSimple",
-                    Description = "Password contains sequential numbers"
-                });
-            }
-
-            return errors.Count == 0
-                ? IdentityResult.Success
-                : IdentityResult.Failed(errors.ToArray());
         }
     }
 }

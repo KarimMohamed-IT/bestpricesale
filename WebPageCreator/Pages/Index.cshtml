@@ -48,7 +48,10 @@
     }
     else
     {
-        <div class="alert alert-info text-center">No pages found. Create one!</div>
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="alert alert-info text-center">No pages found. Create one!</div>
+        }
     }
 </div>
 
