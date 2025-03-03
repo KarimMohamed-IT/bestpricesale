@@ -1,13 +1,13 @@
 ﻿const editor = CKEDITOR.replace('editor', {
     allowedContent: true, // Disable filtering.
-    extraPlugins: 'slider,colorbutton,font,justify',
+    extraPlugins: 'colorbutton,font,justify',
     protectedSource: [/<script[\s\S]*?<\/script>/gi],
     extraAllowedContent: { script: true },
     toolbar: [
         { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike'] },
         { name: 'paragraph', items: ['NumberedList', 'BulletedList', 'Blockquote'] },
         { name: 'links', items: ['Link', 'Unlink'] },
-        { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar', 'Slider'] },
+        { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar'] },
         { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
         { name: 'colors', items: ['TextColor', 'BGColor'] },
         { name: 'tools', items: ['Maximize', 'Source'] }
@@ -53,6 +53,28 @@ function injectScripts() {
 
     // Set the cleaned content without modifying scripts inside it
     CKEDITOR.instances.editor.setData(cleanedContent);
+    //let content = editor.getData();
+
+    //// Regex to find all script tags and modify them
+    //const modifiedContent = content.replace(
+    //    /<script(.*?)>([\s\S]*?)<\/script>/gi,
+    //    (match, attributes, innerContent) => {
+    //        // Add cke_temp comment before closing tag
+    //        const modifiedScript = `<script${attributes}>${innerContent}cke_temp(comment)<\/script>`;
+
+    //        // Wrap in protective p tag
+    //        return `<p data-cke-filter="off">${modifiedScript}</p>`;
+    //    }
+    //);
+
+    //// Update editor content with modified scripts
+    //editor.setData(modifiedContent);
+
+    //// If you still need to inject into iframe
+    //const iframeDocument = editor.document.$;
+    //iframeDocument.body.innerHTML = modifiedContent;
+
+
 }
 
 function getToken() {

@@ -27,7 +27,7 @@ namespace bestpricesale.Pages
 
         public async Task<IActionResult> OnPostDeletePageAsync(string slug)
         {
-            await _pageService.DeletePageAsync(slug); // Delete by ID directly
+            await _pageService.DeletePageAsync(slug);
             return RedirectToPage();
         }
 

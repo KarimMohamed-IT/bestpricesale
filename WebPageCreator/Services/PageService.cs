@@ -91,7 +91,8 @@ public class PageService : IPageService
             {
                 PageId = page.Id,
                 Content = page.Content,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                AuthorId = page.AuthorId
             };
 
             _context.PageVersions.Add(version);

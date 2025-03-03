@@ -38,7 +38,10 @@
                         {
                             <td>
                                 <a href="/PageEditor?slug=@pageload.Title" class="btn btn-warning btn-sm">✏ Редактиране</a>
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('@pageload.Title')">🗑 Изтрий</button>
+                                <form method="post" asp-page-handler="DeletePage" onsubmit="return confirm('Are you sure you want to delete this page?');" style="display: inline;">
+                                    <input type="hidden" name="slug" value="@pageload.Title" />
+                                    <button type="submit" class="btn btn-danger btn-sm">🗑 Изтрий</button>
+                                </form>
                             </td>
                         }
                     </tr>
